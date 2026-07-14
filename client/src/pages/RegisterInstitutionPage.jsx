@@ -1,6 +1,6 @@
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase/firebaseConfig";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 import { auth } from "../firebase/firebaseConfig";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -129,7 +129,10 @@ const handleSubmit = async (e) => {
 
         createdAt: serverTimestamp(),
       });
-    alert("Institution Registered Successfully!");
+      await sendEmailVerification(user);
+    alert(
+      "Registration successful! Please check your email to verify your account before logging in."
+    );
 
   } catch (error) {
     console.error(error);
