@@ -1,8 +1,10 @@
 import { ArrowRight, Building2 } from "lucide-react";
 import TechBadge from "./TechBadge";
 import HeroDashboard from "./HeroDashboard";
+import { useNavigate } from "react-router-dom";
 
 function HeroSection() {
+  const navigate = useNavigate();
   return (
     <section
       id="home"
@@ -42,7 +44,10 @@ function HeroSection() {
               />
             </button>
 
-            <button className="flex items-center gap-2 rounded-2xl border border-blue-600 bg-white px-8 py-4 font-semibold text-blue-600 transition-all duration-300 hover:-translate-y-1 hover:bg-blue-600 hover:text-white">
+            <button
+              onClick={() => navigate("/register")}
+              className="flex items-center gap-2 rounded-2xl border border-blue-600 bg-white px-8 py-4 font-semibold text-blue-600 transition-all duration-300 hover:-translate-y-1 hover:bg-blue-600 hover:text-white"
+            >
               <Building2 size={20} />
               Register Institution
             </button>

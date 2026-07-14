@@ -1,4 +1,6 @@
 import InstitutionCard from "./InstitutionCard";
+import { useNavigate } from "react-router-dom";
+
 
 const institutions = [
   {
@@ -24,6 +26,8 @@ const institutions = [
 ];
 
 function InstitutionShowcase() {
+    const navigate = useNavigate();
+
   return (
     <section className="bg-white py-24">
 
@@ -56,7 +60,10 @@ function InstitutionShowcase() {
 
         <div className="mt-16 text-center">
 
-          <button className="rounded-xl border border-blue-600 px-8 py-4 font-semibold text-blue-600 transition hover:bg-blue-600 hover:text-white">
+          <button
+            onClick={() => navigate("/register")}
+            className="rounded-xl border border-blue-600 px-8 py-4 font-semibold text-blue-600 transition hover:bg-blue-600 hover:text-white"
+            >
             + Register Your Institution
           </button>
 

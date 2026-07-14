@@ -1,14 +1,17 @@
 import { ArrowRight, Building2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 function CallToAction() {
+  const navigate = useNavigate();
+
   return (
     <section className="relative overflow-hidden bg-gradient-to-r from-blue-700 via-blue-600 to-cyan-600 py-24">
 
       {/* Background Blur Effects */}
-      <div className="absolute -left-20 top-10 h-72 w-72 rounded-full bg-white/10 blur-3xl"></div>
-      <div className="absolute -right-16 bottom-0 h-72 w-72 rounded-full bg-cyan-300/20 blur-3xl"></div>
+      <div className="pointer-events-none absolute -left-20 top-10 h-72 w-72 rounded-full bg-white/10 blur-3xl"></div>
+      <div className="pointer-events-none absolute -right-16 bottom-0 h-72 w-72 rounded-full bg-cyan-300/20 blur-3xl"></div>
 
-      <div className="relative mx-auto max-w-5xl px-6 text-center text-white">
+      <div className="relative z-10 mx-auto max-w-5xl px-6 text-center text-white">
 
         <span className="rounded-full bg-white/20 px-5 py-2 text-sm font-medium backdrop-blur">
           🚀 Ready to Get Started?
@@ -35,12 +38,15 @@ function CallToAction() {
 
           </button>
 
-          <button className="flex items-center justify-center gap-2 rounded-2xl border border-white/40 bg-white/10 px-8 py-4 font-semibold text-white backdrop-blur transition hover:bg-white hover:text-blue-700">
-
+          <button
+            onClick={() => {
+              console.log("CTA clicked");
+              navigate("/register");
+            }}
+            className="flex items-center justify-center gap-2 rounded-2xl border border-white/40 bg-white/10 px-8 py-4 font-semibold text-white backdrop-blur transition hover:bg-white hover:text-blue-700"
+          >
             <Building2 size={20} />
-
             Register Institution
-
           </button>
 
         </div>

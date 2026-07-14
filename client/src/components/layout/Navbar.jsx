@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Menu, X, ArrowRight } from "lucide-react";
 import Logo from "../common/Logo";
 
@@ -6,6 +7,7 @@ function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -105,22 +107,8 @@ const navButton = (id, label) => (
           <div className="hidden items-center gap-4 lg:flex">
 
         <button
-          className="
-            rounded-2xl
-            border
-            border-blue-600
-            bg-white
-            px-6
-            py-2.5
-            font-semibold
-            text-blue-600
-            transition-all
-            duration-300
-            hover:-translate-y-1
-            hover:bg-blue-600
-            hover:text-white
-            hover:shadow-lg
-          "
+          onClick={() => navigate("/register")}
+          className="rounded-xl border border-blue-600 px-5 py-2 font-medium text-blue-600 transition hover:bg-blue-50"
         >
           Register Institution
         </button>
@@ -192,7 +180,13 @@ const navButton = (id, label) => (
 
             <hr />
 
-            <button className="rounded-xl border border-blue-600 py-3 text-blue-600">
+            <button
+              onClick={() => {
+                setMobileOpen(false);
+                navigate("/register");
+              }}
+              className="rounded-xl border border-blue-600 py-3 text-blue-600"
+              >
               Register Institution
             </button>
 
