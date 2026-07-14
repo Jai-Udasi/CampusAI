@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import Logo from "../components/common/Logo";
 
 function RegisterInstitutionPage() {
-    const [formData, setFormData] = useState({
+  const initialFormData = {
   institutionName: "",
   institutionEmail: "",
   adminName: "",
@@ -17,8 +17,13 @@ function RegisterInstitutionPage() {
   institutionCode: "",
   city: "",
   state: "",
-});
+};
+const [formData, setFormData] = useState(initialFormData);
+const [loading, setLoading] = useState(false);
+const [firebaseError, setFirebaseError] = useState("");
 const [errors, setErrors] = useState({});
+const [registrationSuccess, setRegistrationSuccess] = useState(false);
+const [registeredEmail, setRegisteredEmail] = useState("");
     const validateForm = () => {
       const newErrors = {};
 
@@ -91,15 +96,14 @@ const handleChange = (e) => {
 
 const handleSubmit = async (e) => {
   e.preventDefault();
+  setFirebaseError("");
+  setLoading(true);
 
+  if (!validateForm()) {
+  setLoading(false);
+  return;
+}
   console.log("Submit Clicked");
-
-  const isValid = validateForm();
-
-  console.log("Is Valid:", isValid);
-  console.log("Errors:", errors);
-
-  if (!isValid) return;
 
     try {
     const userCredential = await createUserWithEmailAndPassword(
@@ -130,12 +134,42 @@ const handleSubmit = async (e) => {
         createdAt: serverTimestamp(),
       });
       await sendEmailVerification(user);
-    alert(
-      "Registration successful! Please check your email to verify your account before logging in."
-    );
 
-  } catch (error) {
+      setRegisteredEmail(formData.adminEmail);
+
+      setLoading(false);
+
+      setRegistrationSuccess(true);
+
+      setFormData(initialFormData);
+
+      setErrors({});
+
+      setFirebaseError("");
+  } 
+  catch (error) {
     console.error(error);
+    setLoading(false);
+    switch (error.code) {
+      case "auth/email-already-in-use":
+        setFirebaseError("An account with this email already exists.");
+        break;
+
+      case "auth/invalid-email":
+        setFirebaseError("Please enter a valid email address.");
+        break;
+
+      case "auth/weak-password":
+        setFirebaseError("Password should be at least 6 characters.");
+        break;
+
+      case "permission-denied":
+        setFirebaseError("Database permission denied.");
+        break;
+
+      default:
+        setFirebaseError("Something went wrong. Please try again.");
+    }
   }
 };
 
@@ -161,10 +195,43 @@ const handleSubmit = async (e) => {
             placements and more.
           </p>
 
-          <form
-            onSubmit={handleSubmit}
-            className="mt-12 grid gap-6 md:grid-cols-2"
+          {registrationSuccess ? (
+
+        <div className="mt-12 text-center">
+
+          <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-green-100">
+            <span className="text-5xl">✅</span>
+          </div>
+
+          <h2 className="mt-8 text-3xl font-bold text-slate-900">
+            Institution Registered Successfully
+          </h2>
+
+          <p className="mx-auto mt-5 max-w-xl text-lg text-slate-600">
+            We've sent a verification email to
+            <span className="font-semibold text-blue-600">
+              {" "}
+              {registeredEmail}
+            </span>
+            <br />
+            Please verify your email before logging in.
+          </p>
+
+          <Link
+            to="/login"
+            className="mt-10 inline-block rounded-xl bg-blue-600 px-8 py-4 font-semibold text-white transition hover:bg-blue-700"
           >
+            Go to Login
+          </Link>
+
+        </div>
+
+      ) : (
+
+      <form
+        onSubmit={handleSubmit}
+        className="mt-12 grid gap-6 md:grid-cols-2"
+      >
 
             {/* Institution Name */}
             <div className="md:col-span-2">
@@ -401,12 +468,22 @@ const handleSubmit = async (e) => {
             </div>
 
             {/* Register Button */}
+            {firebaseError && (
+              <div className="md:col-span-2 rounded-xl border border-red-300 bg-red-50 p-4 text-red-700">
+              {firebaseError}
+            </div>
+          )}
             <button
-              type="submit"
-              className="md:col-span-2 mt-4 rounded-xl bg-blue-600 py-4 text-lg font-semibold text-white transition hover:bg-blue-700"
-            >
-              Register Institution
-            </button>
+            type="submit"
+            disabled={loading}
+            className={`md:col-span-2 mt-4 rounded-xl py-4 text-lg font-semibold text-white transition ${
+              loading
+                ? "cursor-not-allowed bg-slate-400"
+                : "bg-blue-600 hover:bg-blue-700"
+            }`}
+          >
+            {loading ? "Registering..." : "Register Institution"}
+          </button>
 
             {/* Login Link */}
             <p className="md:col-span-2 text-center text-slate-600">
@@ -420,6 +497,8 @@ const handleSubmit = async (e) => {
             </p>
 
           </form>
+
+)}
 
         </div>
 
