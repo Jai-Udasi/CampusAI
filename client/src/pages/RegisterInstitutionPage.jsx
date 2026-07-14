@@ -1,3 +1,5 @@
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "../firebase/firebaseConfig";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase/firebaseConfig";
 import { useState } from "react";
@@ -105,8 +107,29 @@ const handleSubmit = async (e) => {
       formData.adminEmail,
       formData.password
     );
+    const user = userCredential.user;
+        await setDoc(doc(db, "institutions", user.uid), {
+        institutionName: formData.institutionName,
+        institutionEmail: formData.institutionEmail,
+        institutionCode: formData.institutionCode,
+        city: formData.city,
+        state: formData.state,
 
-    console.log("User Created:", userCredential.user);
+        createdBy: user.uid,
+        createdAt: serverTimestamp(),
+      });
+
+      await setDoc(doc(db, "admins", user.uid), {
+        adminName: formData.adminName,
+        adminEmail: formData.adminEmail,
+
+        role: "super-admin",
+
+        institutionId: user.uid,
+
+        createdAt: serverTimestamp(),
+      });
+    alert("Institution Registered Successfully!");
 
   } catch (error) {
     console.error(error);
