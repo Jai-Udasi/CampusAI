@@ -4,9 +4,7 @@ import { useAuth } from "../context/AuthContext";
 function PublicRoute({ children }) {
   const { currentUser } = useAuth();
 
-  if (currentUser) {
-    return <Navigate to="/dashboard" replace />;
-  }
+  console.log("PublicRoute currentUser:", currentUser);
 
   return children;
 }

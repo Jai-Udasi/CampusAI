@@ -1,6 +1,15 @@
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  setDoc,
+  serverTimestamp,
+} from "firebase/firestore";
 import { db } from "../firebase/firebaseConfig";
-import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+  signOut,
+} from "firebase/auth";
 import { auth } from "../firebase/firebaseConfig";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -112,14 +121,18 @@ const handleSubmit = async (e) => {
       formData.password
     );
     const user = userCredential.user;
-        await setDoc(doc(db, "institutions", user.uid), {
+        // Generate a unique Institution document
+      const institutionRef = doc(collection(db, "institutions"));
+
+      await setDoc(institutionRef, {
         institutionName: formData.institutionName,
         institutionEmail: formData.institutionEmail,
         institutionCode: formData.institutionCode,
         city: formData.city,
         state: formData.state,
 
-        createdBy: user.uid,
+        ownerUid: user.uid,
+
         createdAt: serverTimestamp(),
       });
 
@@ -129,11 +142,14 @@ const handleSubmit = async (e) => {
 
         role: "super-admin",
 
-        institutionId: user.uid,
+        institutionId: institutionRef.id,
 
         createdAt: serverTimestamp(),
       });
       await sendEmailVerification(user);
+      await signOut(auth);
+      
+      console.log("User signed out:", auth.currentUser);
 
       setRegisteredEmail(formData.adminEmail);
 

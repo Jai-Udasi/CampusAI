@@ -1,8 +1,18 @@
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../firebase/firebaseConfig";
+import {
+  signInWithEmailAndPassword,
+  signOut,
+} from "firebase/auth";
+
+import {
+  doc,
+  getDoc,
+} from "firebase/firestore";
+
+import { auth, db } from "../../firebase/firebaseConfig";
 import { useNavigate } from "react-router-dom";
+
 
 import AuthInput from "./AuthInput";
 
@@ -15,26 +25,107 @@ function LoginForm() {
   const [error, setError] = useState("");
 
 const handleLogin = async () => {
-    setError("");
+  setError("");
 
-    if (!email || !password) {
-        setError("Please enter both email and password.");
-        return;
+  if (!email || !password) {
+    setError("Please enter both email and password.");
+    return;
+  }
+
+  try {
+    setLoading(true);
+    
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+
+    const user = userCredential.user;
+
+    // Email Verification Check
+    if (!user.emailVerified) {
+      await signOut(auth);
+
+      setError(
+        "Please verify your email before logging in."
+      );
+
+      return;
     }
 
-    try {
-        setLoading(true);
+    // Read Admin Document
+    const adminDoc = await getDoc(
+      doc(db, "admins", user.uid)
+    );
 
-        await signInWithEmailAndPassword(auth, email, password);
+    if (adminDoc.exists()) {
+      const adminData = adminDoc.data();
 
-        navigate("/dashboard");
+      switch (adminData.role) {
+        case "super-admin":
+          navigate("/institution");
+          break;
 
-    } catch (err) {
-        setError("Invalid email or password.");
-    } finally {
-        setLoading(false);
+        case "admin":
+          navigate("/admin");
+          break;
+
+        default:
+          navigate("/dashboard");
+      }
+
+      return;
     }
-    };
+
+    // Future Student Lookup
+    const studentDoc = await getDoc(
+      doc(db, "students", user.uid)
+    );
+
+    if (studentDoc.exists()) {
+      navigate("/dashboard");
+      return;
+    }
+
+    // Future Faculty Lookup
+    const facultyDoc = await getDoc(
+      doc(db, "faculty", user.uid)
+    );
+
+    if (facultyDoc.exists()) {
+      navigate("/faculty");
+      return;
+    }
+
+    await signOut(auth);
+
+    setError("No account role found.");
+
+  } catch (err) {
+    switch (err.code) {
+
+        case "auth/user-not-found":
+        case "auth/wrong-password":
+        case "auth/invalid-credential":
+            setError("Invalid email or password.");
+            break;
+
+        case "auth/too-many-requests":
+            setError("Too many login attempts. Try again later.");
+            break;
+
+        case "auth/network-request-failed":
+            setError("Network error. Check your internet.");
+            break;
+
+        default:
+            setError("Something went wrong.");
+    }
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="w-full max-w-md rounded-3xl bg-white p-10 shadow-xl">
