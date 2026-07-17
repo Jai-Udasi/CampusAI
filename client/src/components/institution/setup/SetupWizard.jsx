@@ -20,6 +20,7 @@ function SetupWizard() {
   const [currentStep, setCurrentStep] = useState(1);
   const { currentUser } = useAuth();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
       // Step 1
   website:"",
@@ -31,6 +32,7 @@ function SetupWizard() {
   academicYear:"",
   departmentCount:"",
   semesterCount:"",
+  departments: [],
 
     // Step 3
   aiAssistantName:"",
@@ -56,6 +58,32 @@ function SetupWizard() {
       [name]: "",
     }));
   };
+
+const addDepartment = () => {
+  setFormData((prev) => ({
+    ...prev,
+    departments: [...prev.departments, ""],
+  }));
+};
+
+const removeDepartment = (index) => {
+  setFormData((prev) => ({
+    ...prev,
+    departments: prev.departments.filter((_, i) => i !== index),
+  }));
+};
+
+const updateDepartment = (index, value) => {
+  const updatedDepartments = [...formData.departments];
+
+  updatedDepartments[index] = value;
+
+  setFormData((prev) => ({
+    ...prev,
+    departments: updatedDepartments,
+  }));
+};
+
 
   const validateBasicInfo = () => {
     const newErrors = {};
@@ -89,23 +117,112 @@ function SetupWizard() {
     return Object.keys(newErrors).length === 0;
   };
 
+const validateAcademicStep = () => {
+  const newErrors = {};
+
+  if (!formData.academicYear.trim()) {
+    newErrors.academicYear = "Academic year is required.";
+  }
+
+  if (!formData.departmentCount) {
+    newErrors.departmentCount =
+      "Number of departments is required.";
+  }
+
+  if (!formData.semesterCount) {
+    newErrors.semesterCount =
+      "Number of semesters is required.";
+  }
+
+  setErrors((prev) => ({
+    ...prev,
+    ...newErrors,
+  }));
+
+  return Object.keys(newErrors).length === 0;
+};
+
+const validateAIStep = () => {
+  const newErrors = {};
+
+  if (!formData.aiAssistantName.trim()) {
+    newErrors.aiAssistantName =
+      "AI Assistant Name is required.";
+  }
+
+  setErrors((prev) => ({
+    ...prev,
+    ...newErrors,
+  }));
+
+  return Object.keys(newErrors).length === 0;
+};
+
+const validateBrandingStep = () => {
+  const newErrors = {};
+
+  if (!formData.primaryColor) {
+    newErrors.primaryColor =
+      "Primary color is required.";
+  }
+
+  if (!formData.secondaryColor) {
+    newErrors.secondaryColor =
+      "Secondary color is required.";
+  }
+
+  setErrors((prev) => ({
+    ...prev,
+    ...newErrors,
+  }));
+
+  return Object.keys(newErrors).length === 0;
+};
+
 const handleNext = async () => {
 
-  if (currentStep === 1 && !validateBasicInfo()) {
-    return;
+  switch (currentStep) {
+
+    case 1:
+      if (!validateBasicInfo()) return;
+      break;
+
+    case 2:
+      if (!validateAcademicStep()) return;
+      break;
+
+    case 3:
+      if (!validateAIStep()) return;
+      break;
+
+    default:
+      break;
   }
 
-  // Save current step data
   await saveProgress();
 
-  // Last step -> Finish
-  if (currentStep === 4) {
-    await finishSetup();
-    return;
-  }
-
-  // Otherwise move ahead
   setCurrentStep((prev) => prev + 1);
+};
+
+const handleFinish = async () => {
+
+  if (!validateBrandingStep()) return;
+
+  setLoading(true);
+
+  try {
+
+    await saveProgress();
+
+    await finishSetup();
+
+    navigate("/institution");
+
+  } finally {
+
+    setLoading(false);
+
+  }
 };
 
   const saveProgress = async () => {
@@ -250,24 +367,29 @@ const finishSetup = async () => {
 
         {currentStep === 2 && (
           <AcademicStep
-          formData={formData}
-          errors={errors}
-          handleChange={handleChange}
-        />
+            formData={formData}
+            errors={errors}
+            handleChange={handleChange}
+            addDepartment={addDepartment}
+            removeDepartment={removeDepartment}
+            updateDepartment={updateDepartment}
+          />
         )}
 
-        {currentStep === 3 && (
-          <AIStep
-            formData={formData}
-            handleChange={handleChange}
-        />
-        )}
+          {currentStep === 3 && (
+            <AIStep
+              formData={formData}
+              errors={errors}
+              handleChange={handleChange}
+            />
+          )}
 
         {currentStep === 4 && (
           <BrandingStep
             formData={formData}
+            errors={errors}
             handleChange={handleChange}
-        />
+          />
         )}
 
       </div>
@@ -286,11 +408,19 @@ const finishSetup = async () => {
         {currentStep === 4 ? (
 
 <button
-    type="button"
-    onClick={finishSetup}
-    className="rounded-xl bg-green-600 px-6 py-3 font-semibold text-white hover:bg-green-700"
+  type="button"
+  onClick={
+    currentStep === 4
+      ? handleFinish
+      : handleNext
+  }
+  className="rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700"
 >
-    Finish Setup
+{loading
+  ? "Saving..."
+  : currentStep === 4
+      ? "Finish Setup"
+      : "Next"}
 </button>
 
 ) : (

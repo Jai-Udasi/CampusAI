@@ -2,18 +2,20 @@ import FormInput from "../../forms/FormInput";
 
 function AIStep({
   formData,
+  errors,
   handleChange,
 }) {
   return (
     <div className="space-y-6">
 
       <FormInput
-        label="Campus AI Name"
-        name="aiAssistantName"
-        value={formData.aiAssistantName}
-        onChange={handleChange}
-        placeholder="CampusAI"
-      />
+  label="AI Assistant Name"
+  name="aiAssistantName"
+  value={formData.aiAssistantName}
+  onChange={handleChange}
+  placeholder="CampusAI"
+  error={errors.aiAssistantName}
+/>
 
       <label className="flex items-center gap-3">
 

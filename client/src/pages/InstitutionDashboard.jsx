@@ -1,34 +1,55 @@
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../firebase/firebaseConfig";
+
+import { useAuth } from "../context/AuthContext";
+
 import DashboardLayout from "../layouts/DashboardLayout";
 
 function InstitutionDashboard() {
 
-useEffect(() => {
+  const navigate = useNavigate();
+  const { currentUser } = useAuth();
+
+  useEffect(() => {
 
     const checkSetup = async () => {
 
+      if (!currentUser) return;
+
+      try {
+
         const adminSnapshot = await getDoc(
-            doc(db,"admins",currentUser.uid)
+          doc(db, "admins", currentUser.uid)
         );
 
+        if (!adminSnapshot.exists()) return;
+
         const institutionId =
-            adminSnapshot.data().institutionId;
+          adminSnapshot.data().institutionId;
 
-        const institutionSnapshot =
-            await getDoc(
-                doc(db,"institutions",institutionId)
-            );
+        const institutionSnapshot = await getDoc(
+          doc(db, "institutions", institutionId)
+        );
 
-        if (!institutionSnapshot.data().setupCompleted) {
-
-            navigate("/institution/setup");
-
+        if (
+          institutionSnapshot.exists() &&
+          !institutionSnapshot.data().setupCompleted
+        ) {
+          navigate("/institution/setup");
         }
+
+      } catch (err) {
+        console.error(err);
+      }
 
     };
 
     checkSetup();
 
-}, []);
+  }, [currentUser, navigate]);
 
   return (
     <DashboardLayout role="Institution">

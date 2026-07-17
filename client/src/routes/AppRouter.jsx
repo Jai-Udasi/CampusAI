@@ -1,16 +1,19 @@
 import { Routes, Route } from "react-router-dom";
-import InstitutionSetupPage from "../pages/InstitutionSetupPage";
+
 import HomePage from "../pages/HomePage";
 import LoginPage from "../pages/LoginPage";
 import RegisterInstitutionPage from "../pages/RegisterInstitutionPage";
 
 import InstitutionDashboard from "../pages/InstitutionDashboard";
+import InstitutionSetupPage from "../pages/InstitutionSetupPage";
 import AdminDashboard from "../pages/AdminDashboard";
 import StudentDashboard from "../pages/StudentDashboard";
 import FacultyDashboard from "../pages/FacultyDashboard";
 
 import ProtectedRoute from "../guards/ProtectedRoute";
 import PublicRoute from "../guards/PublicRoute";
+import InstitutionGuard from "../guards/InstitutionGuard";
+
 import NotFound from "../pages/NotFound";
 
 function AppRouter() {
@@ -37,7 +40,18 @@ function AppRouter() {
         path="/institution"
         element={
           <ProtectedRoute>
-            <InstitutionDashboard />
+            <InstitutionGuard>
+              <InstitutionDashboard />
+            </InstitutionGuard>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/institution/setup"
+        element={
+          <ProtectedRoute>
+            <InstitutionSetupPage />
           </ProtectedRoute>
         }
       />
@@ -65,15 +79,6 @@ function AppRouter() {
         element={
           <ProtectedRoute>
             <FacultyDashboard />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path="/institution/setup"
-        element={
-          <ProtectedRoute>
-            <InstitutionSetupPage />
           </ProtectedRoute>
         }
       />
