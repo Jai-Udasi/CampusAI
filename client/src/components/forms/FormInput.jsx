@@ -8,6 +8,7 @@ function FormInput({
   onChange,
   placeholder,
   error,
+  readOnly = false,
 }) {
   return (
     <div>
@@ -21,7 +22,12 @@ function FormInput({
         value={value}
         onChange={onChange}
         placeholder={placeholder}
+        readOnly={readOnly}
         className={`w-full rounded-xl px-5 py-4 outline-none transition ${
+          readOnly
+            ? "cursor-not-allowed bg-slate-100"
+            : ""
+        } ${
           error
             ? "border border-red-500"
             : "border border-slate-300 focus:border-blue-600"

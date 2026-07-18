@@ -28,30 +28,33 @@ function AcademicStep({
         error={errors.academicYear}
       />
 
+      {/* Auto-generated Department Count */}
       <FormInput
-        label="Departments"
+        label="Number of Departments"
         name="departmentCount"
         type="number"
         value={formData.departmentCount}
-        onChange={handleChange}
-        placeholder="10"
+        readOnly
+        placeholder="0"
         error={errors.departmentCount}
       />
 
-        <FormInput
-            label="Semesters"
-            name="semesterCount"
-            type="number"
-            value={formData.semesterCount}
-            onChange={handleChange}
-            placeholder="8"
-            error={errors.semesterCount}
-        />
+      <FormInput
+        label="Number of Semesters"
+        name="semesterCount"
+        type="number"
+        value={formData.semesterCount}
+        onChange={handleChange}
+        placeholder="8"
+        error={errors.semesterCount}
+      />
+
+      {/* Dynamic Departments */}
 
       <div>
 
         <label className="mb-2 block font-medium text-slate-700">
-          Departments
+          Department Names
         </label>
 
         <div className="space-y-3">
@@ -70,7 +73,7 @@ function AcademicStep({
                 onChange={(e) =>
                   updateDepartment(index, e.target.value)
                 }
-                className="flex-1 rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-blue-600"
+                className="flex-1 rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-blue-600"
               />
 
               <button
@@ -95,23 +98,11 @@ function AcademicStep({
           + Add Department
         </button>
 
-      </div>
-
-      <div className="grid grid-cols-2 gap-5">
-
-        <FormInput
-          label="Number of Departments"
-          name="departmentCount"
-          value={formData.departmentCount}
-          onChange={handleChange}
-        />
-
-        <FormInput
-          label="Number of Semesters"
-          name="semesterCount"
-          value={formData.semesterCount}
-          onChange={handleChange}
-        />
+        {errors.departments && (
+          <p className="mt-2 text-sm text-red-600">
+            {errors.departments}
+          </p>
+        )}
 
       </div>
 

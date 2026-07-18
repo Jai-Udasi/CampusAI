@@ -8,7 +8,7 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 
-import { auth, db } from "../../../firebase/firebaseConfig";
+import { db } from "../../../firebase/firebaseConfig";
 import SetupProgress from "../SetupProgress";
 import { useNavigate } from "react-router-dom";
 import BasicInfoStep from "./BasicInfoStep";
@@ -63,24 +63,45 @@ const addDepartment = () => {
   setFormData((prev) => ({
     ...prev,
     departments: [...prev.departments, ""],
+    departmentCount: String(prev.departments.length + 1),
   }));
+  setErrors((prev) => ({
+  ...prev,
+  departments: "",
+  departmentCount: "",
+}));
 };
 
 const removeDepartment = (index) => {
+  const updatedDepartments = formData.departments.filter(
+    (_, i) => i !== index
+  );
+
   setFormData((prev) => ({
     ...prev,
-    departments: prev.departments.filter((_, i) => i !== index),
+    departments: updatedDepartments,
+    departmentCount: String(updatedDepartments.length),
   }));
+  setErrors((prev) => ({
+  ...prev,
+  departments: "",
+  departmentCount: "",
+}));
 };
 
 const updateDepartment = (index, value) => {
   const updatedDepartments = [...formData.departments];
-
   updatedDepartments[index] = value;
 
   setFormData((prev) => ({
     ...prev,
     departments: updatedDepartments,
+  }));
+
+  setErrors((prev) => ({
+    ...prev,
+    departments: "",
+    departmentCount: "",
   }));
 };
 
@@ -124,9 +145,18 @@ const validateAcademicStep = () => {
     newErrors.academicYear = "Academic year is required.";
   }
 
-  if (!formData.departmentCount) {
-    newErrors.departmentCount =
-      "Number of departments is required.";
+ if (formData.departments.length === 0) {
+  newErrors.departments =
+    "Add at least one department.";
+  }  
+
+  if (
+    formData.departments.some(
+      (department) => !department.trim()
+    )
+  ) {
+    newErrors.departments =
+      "Please fill all department names.";
   }
 
   if (!formData.semesterCount) {
@@ -134,12 +164,13 @@ const validateAcademicStep = () => {
       "Number of semesters is required.";
   }
 
-  setErrors((prev) => ({
-    ...prev,
-    ...newErrors,
-  }));
+setErrors((prev) => ({
+  ...prev,
+  ...newErrors,
+}));
 
-  return Object.keys(newErrors).length === 0;
+return Object.keys(newErrors).length === 0;
+  
 };
 
 const validateAIStep = () => {
@@ -199,9 +230,9 @@ const handleNext = async () => {
       break;
   }
 
-  await saveProgress();
-
-  setCurrentStep((prev) => prev + 1);
+  const nextStep = currentStep + 1;
+  setCurrentStep(nextStep);
+  await saveProgress(nextStep);
 };
 
 const handleFinish = async () => {
@@ -212,10 +243,7 @@ const handleFinish = async () => {
 
   try {
 
-    await saveProgress();
-
     await finishSetup();
-
     navigate("/institution");
 
   } finally {
@@ -225,8 +253,9 @@ const handleFinish = async () => {
   }
 };
 
-  const saveProgress = async () => {
-    if (!currentUser) return;
+const saveProgress = async (step = currentStep) => {  
+
+  if (!currentUser) return;
 
     try {
       const adminSnapshot = await getDoc(
@@ -242,7 +271,7 @@ await updateDoc(
   {
     ...formData,
 
-    currentStep,
+    currentStep: step,
 
     updatedAt: serverTimestamp(),
   }
@@ -287,7 +316,6 @@ const finishSetup = async () => {
       }
     );
 
-    navigate("/institution");
 
   } catch (err) {
     console.error(err);
@@ -328,9 +356,9 @@ const finishSetup = async () => {
           ...data,
         }));
 
-        if (data.currentStep) {
-          setCurrentStep(data.currentStep);
-        }
+        setCurrentStep((prev) =>
+          data.currentStep > prev ? data.currentStep : prev
+        );
 
       } catch (err) {
         console.error(err);
@@ -399,7 +427,13 @@ const finishSetup = async () => {
         <button
           type="button"
           disabled={currentStep === 1}
-          onClick={() => setCurrentStep((prev) => prev - 1)}
+          onClick={async () => {
+          const previous = currentStep - 1;
+
+          setCurrentStep(previous);
+
+          await saveProgress(previous);
+          }}
           className="rounded-xl border border-slate-300 px-6 py-3 disabled:opacity-50"
         >
           Previous
